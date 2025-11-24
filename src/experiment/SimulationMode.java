@@ -32,6 +32,7 @@ public class SimulationMode {
 	public void runExperiment(String filename){
 		String[] temp = filename.split("/");
 		String mapFile = temp[temp.length-1];
+                String mapIdentifier = mapFile.replace(".txt", ""); // ej: "map0"
 		
 		initMetrics();
 		
@@ -46,8 +47,25 @@ public class SimulationMode {
 		for(int i=0;i<totalRuns;i++){
 			testPlay.startGame();
 			
-			Controller testAgent = new PathfindingController(testPlay,testPlay.getHero());
+			//Controller testAgent = new PathfindingController(testPlay,testPlay.getHero());
 			//Controller testAgent = new ZombieController(testPlay,testPlay.getHero());
+                        
+                        // 1. Elegir la persona que quieres probar (ej. TREASURE_COLLECTOR)
+                        QLearningController.Persona personaToTest = QLearningController.Persona.TREASURE_COLLECTOR;
+
+                        // 2. Construir el nombre del archivo dinámicamente
+                        String policyFile = "./trained_agents/" + personaToTest.name() + "_" + mapIdentifier + ".ser";
+
+                        // 3. Cargar el agente
+                        QLearningController testAgent = new QLearningController(testPlay, testPlay.getHero(), personaToTest);
+                        
+                        // Verificar si existe antes de cargar para evitar errores
+                        if (new File(policyFile).exists()) {
+                            testAgent.loadPolicy(policyFile);
+                            testAgent.setEpsilon(0.0); // Modo explotación pura
+                        } else {
+                            System.out.println("Warning: Policy not found for " + policyFile + ". Using random agent.");
+                        }
 			
 			int actions = 0;
 		
