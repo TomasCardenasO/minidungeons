@@ -57,6 +57,16 @@ public class QTraining {
     }
 
     private void trainAgent(Dungeon baseDungeon, Persona persona, String mapName) {
+        
+        // --- VERIFICAR SI YA TERMINÓ ---
+        String saveName = persona.name() + "_" + mapName.replace(".txt", "") + ".ser";
+        File finalFile = new File(OUTPUT_FOLDER + saveName);
+        
+        if (finalFile.exists()) {
+            System.out.println("   [SKIP] Training already completed for: " + saveName);
+            return; // Salimos del método, pasando al siguiente mapa inmediatamente
+        }
+        
         PlayMap map = new PlayMap(baseDungeon);
         map.startGame(); 
         
@@ -130,7 +140,6 @@ public class QTraining {
         }
 
         // Guardado Final (El archivo definitivo)
-        String saveName = persona.name() + "_" + mapName.replace(".txt", "") + ".ser";
         agent.savePolicy(OUTPUT_FOLDER + saveName);
         
         // Borrar el checkpoint porque ya terminamos exitosamente
