@@ -194,4 +194,29 @@ public class QLearningController extends Controller implements Serializable {
             e.printStackTrace();
         }
     }
+    
+// --- MÉTODOS PARA CHECKPOINTS ---
+
+    public void saveCheckpoint(String filename, int currentEpisode) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filename))) {
+            oos.writeObject(qTable);       // Guardar la tabla Q
+            oos.writeInt(currentEpisode);  // Guardar el número de episodio actual
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Carga la tabla y RETORNA el episodio donde se quedó (o 0 si falla)
+    @SuppressWarnings("unchecked")
+    public int loadCheckpoint(String filename) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename))) {
+            this.qTable = (HashMap<String, double[]>) ois.readObject();
+            int episode = ois.readInt();
+            System.out.println(">>> RESUMING from Checkpoint: Episode " + episode);
+            return episode;
+        } catch (IOException | ClassNotFoundException e) {
+            return 0; // Si falla o no existe, empezamos desde 0
+        }
+    
+    }
 }

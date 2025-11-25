@@ -11,7 +11,7 @@ import controllers.QLearningController.Persona;
 
 public class QTraining {
 
-    final int TOTAL_EPISODES = 250000; 
+    final int TOTAL_EPISODES = 150000; 
     final int MAX_STEPS_PER_GAME = 200;
     
     // Configuración de mapas
@@ -58,18 +58,28 @@ public class QTraining {
 
     private void trainAgent(Dungeon baseDungeon, Persona persona, String mapName) {
         PlayMap map = new PlayMap(baseDungeon);
-        
         map.startGame(); 
-        // Instancia única del agente para este mapa/persona
+        
         QLearningController agent = new QLearningController(map, map.getHero(), persona);
 
-        for (int i = 0; i < TOTAL_EPISODES; i++) {
+        // Definir nombre del Checkpoint (ej: ckpt_TREASURE_COLLECTOR_map0.ser)
+        // Se guarda en la misma carpeta OUTPUT_FOLDER
+        String mapIdStr = mapName.replace(".txt", "");
+        String ckptName = OUTPUT_FOLDER + "ckpt_" + persona.name() + "_" + mapIdStr + ".ser";
+        File ckptFile = new File(ckptName);
+
+        // Verificar si existe checkpoint y cargar
+        int startEpisode = 0;
+        if (ckptFile.exists()) {
+            startEpisode = agent.loadCheckpoint(ckptName);
+        }
+
+        // El bucle empieza donde nos quedamos (startEpisode) en lugar de 0
+        for (int i = startEpisode; i < TOTAL_EPISODES; i++) {
             map.startGame();
-            
-            // Re-vincular el héroe nuevo al agente existente (requiere updateHero en QLearningController)
             agent.updateHero(map.getHero()); 
             
-            // Decay de Epsilon lineal
+            // Recálculo de Epsilon (funciona bien al resumir porque depende de 'i')
             double epsilon = 1.0;
             if (i > 2500) {
                  double progress = (double)(i - 2500) / (TOTAL_EPISODES - 2500);
@@ -111,15 +121,23 @@ public class QTraining {
                 if (map.isGameHalted()) done = true;
             }
             
-            if (i % 50000 == 0 && i > 0) {
-                System.out.println("   Progress: " + i + "/" + TOTAL_EPISODES + " | QTable: " + agent.qTable.size());
+            // GUARDADO DE CHECKPOINT
+            // Guardamos cada 10,000 episodios para no escribir en disco constantemente
+            if (i % 15000 == 0 && i > 0) {
+                agent.saveCheckpoint(ckptName, i);
+                System.out.println("   Saved Checkpoint at " + i + "/" + TOTAL_EPISODES + " | QTable: " + agent.qTable.size());
             }
         }
 
-        // GUARDADO ESPECÍFICO: Incluimos el nombre del mapa en el archivo
-        // Ejemplo: ./trained_agents/TREASURE_COLLECTOR_map0.txt.ser
+        // Guardado Final (El archivo definitivo)
         String saveName = persona.name() + "_" + mapName.replace(".txt", "") + ".ser";
         agent.savePolicy(OUTPUT_FOLDER + saveName);
+        
+        // Borrar el checkpoint porque ya terminamos exitosamente
+        if(ckptFile.exists()) {
+            ckptFile.delete();
+            System.out.println("   Training complete. Checkpoint removed.");
+        }
     }
 
     public static void main(String[] args) {
