@@ -51,7 +51,7 @@ public class SimulationMode {
 			//Controller testAgent = new ZombieController(testPlay,testPlay.getHero());
                         
                         // 1. Elegir la persona que quieres probar (ej. TREASURE_COLLECTOR)
-                        QLearningController.Persona personaToTest = QLearningController.Persona.TREASURE_COLLECTOR;
+                        QLearningController.Persona personaToTest = QLearningController.Persona.TRYHARD;
 
                         // 2. Construir el nombre del archivo dinámicamente
                         String policyFile = "./trained_agents/" + personaToTest.name() + "_" + mapIdentifier + ".ser";

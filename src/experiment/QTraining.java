@@ -151,6 +151,6 @@ public class QTraining {
 
     public static void main(String[] args) {
         QTraining trainer = new QTraining();
-        trainer.trainAllMapsAndPersonas(Persona.TREASURE_COLLECTOR);
+        trainer.trainAllMapsAndPersonas(Persona.TRYHARD);
     }
 }

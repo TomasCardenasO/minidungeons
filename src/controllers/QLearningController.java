@@ -23,21 +23,13 @@ public class QLearningController extends Controller implements Serializable {
     private Random random;
     
     // Persona actual (para definir recompensas)
-    public enum Persona { BASELINE, RUNNER, SURVIVALIST, MONSTER_KILLER, TREASURE_COLLECTOR }
+    public enum Persona { BASELINE, RUNNER, SURVIVALIST, MONSTER_KILLER, TREASURE_COLLECTOR, TRYHARD }
     private Persona currentPersona;
 
     public QLearningController(PlayMap map, GameCharacter controllingChar, Persona persona) {
         super(map, controllingChar, "QLearning_" + persona.name());
         this.currentPersona = persona;
         this.qTable = new HashMap<>();
-        this.random = new Random();
-    }
-
-    // Constructor para cargar un agente ya entrenado
-    public QLearningController(PlayMap map, GameCharacter controllingChar, String label) {
-        super(map, controllingChar, label);
-        this.currentPersona = Persona.BASELINE; //Se usa BASELINE por defecto
-        this.qTable = new HashMap<>(); // Debería sobrescribirse con loadPolicy
         this.random = new Random();
     }
 
@@ -162,6 +154,13 @@ public class QLearningController extends Controller implements Serializable {
                 if (collectedTreasure) r += 1.0;
                 if (reachedExit) r += 0.5;
                 if (wasKilled) r -= 0.5;
+                if (moved) r -= 0.01;
+                break;
+            case TRYHARD: // Nueva "Persona", completa todo el juego antes de salir.
+                if(collectedTreasure) r += 1.0;
+                if (killedMonster) r += 1.0;
+                if (reachedExit) r += 2.0;
+                if (wasKilled) r -= 2.0;
                 if (moved) r -= 0.01;
                 break;
         }
