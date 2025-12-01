@@ -19,7 +19,7 @@ import util.statics.StatisticUtils;
 public class DebugMode {
 	final int maxActions = 300;
 	
-	public void runTest(String filename){
+	public void runTest(String filename, String agentType){
 		String[] temp = filename.split("/");
 		String mapFile = temp[temp.length-1];
 		
@@ -33,7 +33,7 @@ public class DebugMode {
 		PlayMap testPlay = new PlayMap(testDungeon);
 		testPlay.startGame();
 
-		Controller testAgent = new RoombaController(testPlay,testPlay.getHero());
+		Controller testAgent = createAgent(agentType, testPlay);
 
 		int actions = 0;
 
@@ -47,8 +47,47 @@ public class DebugMode {
 		}
 	}
 	
+	private Controller createAgent(String agentType, PlayMap playMap) {
+		switch(agentType.toLowerCase()) {
+			case "uct":
+			case "mcts":
+				return new UCT(playMap, playMap.getHero());
+			case "qlearning":
+			case "q-learning":
+				return new QLearningController(playMap, playMap.getHero(), QLearningController.Persona.BASELINE);
+			case "pathfinding":
+			case "path":
+				return new PathfindingController(playMap, playMap.getHero());
+			case "random":
+				return new RandomController(playMap, playMap.getHero());
+			case "roomba":
+				return new RoombaController(playMap, playMap.getHero());
+			case "zombie":
+				return new ZombieController(playMap, playMap.getHero());
+			default:
+				System.out.println("Unknown agent type: " + agentType);
+				System.out.println("Available agents: UCT, QLearning, Pathfinding, Random, Roomba, Zombie");
+				System.out.println("Using UCT as default...");
+				return new UCT(playMap, playMap.getHero());
+		}
+	}
+	
 	public static void main(String[] args) {
 		DebugMode exp = new DebugMode();
-		exp.runTest("./dungeons/map0.txt");
+		
+		// Default values
+		String mapFile = "./dungeons/map0.txt";
+		String agentType = "UCT";
+		
+		// Parse command line arguments
+		if(args.length > 0) {
+			agentType = args[0];
+		}
+		if(args.length > 1) {
+			mapFile = args[1];
+		}
+		
+		System.out.println("Running DebugMode with agent: " + agentType + " on map: " + mapFile);
+		exp.runTest(mapFile, agentType);
 	}
 }

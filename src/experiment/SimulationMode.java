@@ -21,6 +21,7 @@ public class SimulationMode {
 	final int maxActions = 300;
 	
 	String outputFolder = "./testResults/";	// this folder needs to already exist, it will not be created by the program
+	String agentType = "QLearning"; // Can be "QLearning" or "UCT"
 	
 	double[] hpRemaining;
 	double[] monstersKilled;
@@ -47,25 +48,32 @@ public class SimulationMode {
 		for(int i=0;i<totalRuns;i++){
 			testPlay.startGame();
 			
-			//Controller testAgent = new PathfindingController(testPlay,testPlay.getHero());
-			//Controller testAgent = new ZombieController(testPlay,testPlay.getHero());
-                        
-                        // 1. Elegir la persona que quieres probar (ej. TREASURE_COLLECTOR)
-                        QLearningController.Persona personaToTest = QLearningController.Persona.TRYHARD;
+			Controller testAgent = null;
+			
+			if(agentType.equalsIgnoreCase("UCT") || agentType.equalsIgnoreCase("MCTS")) {
+				// Usar UCT
+				testAgent = new UCT(testPlay, testPlay.getHero());
+			} else {
+				// Usar Q-Learning (default)
+				// 1. Elegir la persona que quieres probar (ej. TREASURE_COLLECTOR)
+				QLearningController.Persona personaToTest = QLearningController.Persona.TRYHARD;
 
-                        // 2. Construir el nombre del archivo dinámicamente
-                        String policyFile = "./trained_agents/" + personaToTest.name() + "_" + mapIdentifier + ".ser";
+				// 2. Construir el nombre del archivo dinámicamente
+				String policyFile = "./trained_agents/" + personaToTest.name() + "_" + mapIdentifier + ".ser";
 
-                        // 3. Cargar el agente
-                        QLearningController testAgent = new QLearningController(testPlay, testPlay.getHero(), personaToTest);
-                        
-                        // Verificar si existe antes de cargar para evitar errores
-                        if (new File(policyFile).exists()) {
-                            testAgent.loadPolicy(policyFile);
-                            testAgent.setEpsilon(0.0); // Modo explotación pura
-                        } else {
-                            System.out.println("Warning: Policy not found for " + policyFile + ". Using random agent.");
-                        }
+				// 3. Cargar el agente
+				QLearningController qlearningAgent = new QLearningController(testPlay, testPlay.getHero(), personaToTest);
+				
+				// Verificar si existe antes de cargar para evitar errores
+				if (new File(policyFile).exists()) {
+					qlearningAgent.loadPolicy(policyFile);
+					qlearningAgent.setEpsilon(0.0); // Modo explotación pura
+				} else {
+					System.out.println("Warning: Policy not found for " + policyFile + ". Using random agent.");
+				}
+				
+				testAgent = qlearningAgent;
+			}
 			
 			int actions = 0;
 		
@@ -77,7 +85,9 @@ public class SimulationMode {
 			String visitMap = PlayVisualizer.renderHeatmapDungeon(testPlay);
 			//String visitMap = PlayVisualizer.renderFinalDungeon(testPlay);
 			try { 
-				writeFile(outputFolder+"/finalRun"+i+"_of_"+mapFile,visitMap);
+				// Include agent type in filename
+				String filenameWithAgent = mapFile.replace(".txt", "_" + agentType + ".txt");
+				writeFile(outputFolder+"/finalRun"+i+"_of_"+filenameWithAgent,visitMap);
 			} catch(Exception e){
 				System.out.println(e.toString());
 			}
@@ -88,7 +98,9 @@ public class SimulationMode {
 		System.out.println(printFullMetrics());
 		
 		try { 
-			writeFile(outputFolder+"/finalReport_of_"+mapFile.replace("txt","csv"), new String[]{ printMetrics(maxActions), printFullMetrics() });
+			// Include agent type in filename
+			String reportFilename = mapFile.replace(".txt", "_" + agentType + ".csv");
+			writeFile(outputFolder+"/finalReport_of_"+reportFilename, new String[]{ printMetrics(maxActions), printFullMetrics() });
 		} catch(Exception e){
 			System.out.println(e.toString());
 		}
@@ -163,6 +175,7 @@ public class SimulationMode {
 	}
 	
 	public void setOutputFolder(String outputFolder){ this.outputFolder = outputFolder; }
+	public void setAgentType(String agentType){ this.agentType = agentType; }
 	
 	public static void writeFile(String filename, String line) throws IOException{
 		BufferedWriter outputWriter = null;
@@ -185,6 +198,19 @@ public class SimulationMode {
 	
 	public static void main(String[] args) {
 		SimulationMode exp = new SimulationMode();
+		
+		// Default agent type
+		String agentType = "QLearning";
+		
+		// Parse command line arguments
+		if(args.length > 0) {
+			agentType = args[0];
+		}
+		
+		exp.setAgentType(agentType);
+		System.out.println("Running SimulationMode with agent: " + agentType);
+		System.out.println("Testing on all maps (map0-map10)...\n");
+		
 		for(int i=0;i<=10;i++){
 			System.out.println("\n--------------\nMAP"+i+"\n--------------\n");
 			exp.runExperiment("./dungeons/map"+i+".txt");

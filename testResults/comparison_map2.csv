@@ -1,0 +1,3 @@
+Agent,TimesCompleted,AvgHP,AvgMonsters,AvgTreasures,AvgPotions,AvgActions,AvgTiles
+QLearning,10,7.6,6.4,5.9,2.6,88.8,56.6
+UCT,8,30.3,2.9,2.2,1.9,132.4,37.2

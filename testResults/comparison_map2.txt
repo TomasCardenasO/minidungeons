@@ -1,0 +1,35 @@
+===================================================
+       COMPARISON REPORT: map2
+===================================================
+
+COMPLETION RATE:
+  Q-Learning: 10/10 (100%)
+  UCT:        8/10 (80%)
+
+AVERAGE HP REMAINING:
+  Q-Learning: 7,60
+  UCT:        30,30
+
+AVERAGE MONSTERS KILLED:
+  Q-Learning: 6,40
+  UCT:        2,90
+
+AVERAGE TREASURES COLLECTED:
+  Q-Learning: 5,90
+  UCT:        2,20
+
+AVERAGE ACTIONS TAKEN:
+  Q-Learning: 88,80
+  UCT:        132,40
+
+AVERAGE TILES EXPLORED:
+  Q-Learning: 56,60
+  UCT:        37,20
+
+===================================================
+WINNER ANALYSIS:
+---------------------------------------------------
+Best Completion Rate: Q-Learning
+Most Treasures: Q-Learning
+Most Efficient (fewer actions): Q-Learning
+===================================================
